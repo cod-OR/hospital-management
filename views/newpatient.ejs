@@ -1,0 +1,37 @@
+<%- include('partials/header'); -%>
+
+<body>
+
+  <body>
+ <div>
+    <form action="/newPatient" method="POST">
+      <div class="mb-3">
+        <label  class="form-label">Name</label>
+        <input type="text" class="form-control" name="name">
+      </div>
+      <div class="mb-3">
+        <label  class="form-label">Email address</label>
+        <input type="email" class="form-control" name="email">
+      </div>
+      <div class="mb-3">
+        <label  class="form-label">Gender</label>
+        <select name="gender" id="cars">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label  class="form-label">Age</label>
+        <input type="text" class="form-control" name="age">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+ </div>
+  </body>
+
+</body>
+
+
+<%- include('partials/footer'); -%>
