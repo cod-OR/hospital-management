@@ -1,0 +1,17 @@
+
+<%- include('partials/header'); -%>
+
+<body>
+<div>
+  <form action="/getpid" method="POST">
+    <div class="mb-3">
+      <label  class="form-label">Patient's email address</label>
+      <input type="text" class="form-control" name="email">
+    </div>
+    <button type="submit" class="btn btn-primary">get my id</button>
+  </form>
+</div>
+</body>
+
+
+<%- include('partials/footer'); -%>
