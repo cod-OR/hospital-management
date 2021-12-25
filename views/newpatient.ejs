@@ -7,11 +7,11 @@
     <form action="/newPatient" method="POST">
       <div class="mb-3">
         <label  class="form-label">Name</label>
-        <input type="text" class="form-control" name="name">
+        <input type="text" class="form-control" name="name" required>
       </div>
       <div class="mb-3">
         <label  class="form-label">Email address</label>
-        <input type="email" class="form-control" name="email">
+        <input type="email" class="form-control" name="email" required>
       </div>
       <div class="mb-3">
         <label  class="form-label">Gender</label>
@@ -23,7 +23,7 @@
       </div>
       <div class="mb-3">
         <label  class="form-label">Age</label>
-        <input type="text" class="form-control" name="age">
+        <input type="text" class="form-control" name="age" required>
       </div>
 
       <button type="submit" class="btn btn-primary">Submit</button>

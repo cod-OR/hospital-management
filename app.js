@@ -1,4 +1,7 @@
 
+
+//////////////////////////////////////////////////////// Init ////////////////////////////////////////////////////////////////
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -9,29 +12,47 @@ mongoose.connect("mongodb://localhost:27017/hospitalDB", { useNewUrlParser:true 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-const patientSchema = {
-  pid: Number,
-  name: String,
-  email: String,
-  gender: String,
-  age: Number
-};
 
-const caseSchema ={
-  pid: Number,
-  doctorId: Number,
+///////////////////////////////////////////// Defining Schemas and Models ////////////////////////////////////////////////////
+
+const patientSchema = new mongoose.Schema({
+  pid: {type:Number, required: [true, 'pid is required']},
+  name: {type:String, required: [true, 'name is required']},
+  email: {type:String, required: [true, 'email is required']},
+  gender: {type:String, required: [true, 'gender is required (male/female/other).'], enum: ['male', 'female', 'other']},
+  age: {type:Number, required: [true, 'age is required'], min:0, max:150}
+});
+
+const caseSchema = new mongoose.Schema({
+  pid:         {type:Number, required: [true, 'pid is required']},
+  doctorId:    {type:Number, required: [true, "Doctor's id is required"]},
   description: String
-};
+});
 
 const Patient = mongoose.model("patient", patientSchema);
 const Case = mongoose.model("case", caseSchema);
 
+
+
+////////////////////////////////////////////////// GET requests ///////////////////////////////////////////////////////////
+
+
 app.get("/", function(req, res){
   res.render("home");
+});
+app.get("/about", function(req, res){
+  res.render("about");
+});
+app.get("/contact", function(req, res){
+  res.render("contact");
 });
 
 app.get("/newpatient", function(req, res){
   res.render("newpatient");
+});
+
+app.get("/newcase", function(req, res){
+  res.render("newcase");
 });
 
 app.get("/getpid", function(req, res){
@@ -39,14 +60,17 @@ app.get("/getpid", function(req, res){
 });
 
 
+///////////////////////////////////////////////// POST requests /////////////////////////////////////////////////////////////
+
+
 app.post("/getpid", function(req, res){
   const mail = req.body.email;
-
   Patient.findOne({email:mail}, function(err, patient){
-    if(err)
-      console.log("err");
+    if(err){
+      console.log(err);
+      alert("Some error occured. Please try again.");
+    }
     else if(patient){
-      console.log(patient);
       alert("Your pid is " + patient.pid);
       res.redirect("/");
     }
@@ -55,25 +79,9 @@ app.post("/getpid", function(req, res){
       res.redirect("/");
     }
   });
-
-});
-
-
-//   to get a list of all patients
-app.get("/patientlist", function(req, res){
-  Patient.find({}, function(err, patients){
-    res.send(patients);
-  });
-});
-
-app.get("/patienthistory/:pid", function(req, res){
-  Case.find({pid:req.params.pid}, function(err, cases){
-    res.send(cases);
-  });
 });
 
 app.post("/newpatient", function(req, res){
-  console.log(req.body);
   Patient.countDocuments({}, function(err, cnt){
     const newPatient = new Patient({
       pid: cnt,
@@ -83,12 +91,88 @@ app.post("/newpatient", function(req, res){
       age: req.body.age
     });
     newPatient.save();
+    alert("Your pid is " + newPatient.pid);
     res.redirect("/");
   });
 });
 
+app.post("/newcase", function(req, res){
+
+  Patient.findOne({pid:req.body.pid} , function(err,patient){
+    if(err){
+      console.log(err);
+    }
+    else if(patient){
+      const newCase = new Case({
+        pid: req.body.pid,
+        doctorId: getDocId(),
+        description: req.body.description
+      });
+      newCase.save(function(err){
+        if(err){
+          res.send(err);
+          const name = err.name;
+          if(name == "ValidatorError"){
+            alert("pid is required. If you do not have one, please add a new patient.");
+            res.redirect("/");
+          }
+          else{
+            console.log(err);
+          }
+        }
+        else{
+          alert("Case logged Successfully");
+          res.redirect("/");
+        }
+      });
+    }
+    else{
+      alert("No patient with this pid exists.")
+      res.redirect("/");
+    }
+  });
+
+});
+
+
+////////////////////////////////////////////////////// GET API ////////////////////////////////////////////////////////
+
+
+app.get("/patientlist", function(req, res){
+  Patient.find({}, {_id:0, __v:0} ,function(err, patients){
+    if(err)
+      res.send(err);
+    else
+      res.send(patients);
+  });
+});
+
+app.get("/patienthistory", function(req, res){
+  Case.find({pid:req.body.pid},{_id:0, __v:0} ,function(err, cases){
+    if(err)
+      res.send(err);
+    else
+      res.send(cases);
+  });
+});
+
+app.get("/casecountapi", function(req, res){
+  const requiredPid = req.body.pid;
+  Case.find({pid:requiredPid}, function(err, cases){
+    if(err)
+      res.send(err);
+    else{
+      const size=cases.length;
+      res.send({"Number of total cases of this patient":size});
+    }
+  });
+});
+
+
+//////////////////////////////////////////////// POST API ///////////////////////////////////////////////////////
+
+
 app.post("/newpatientapi", function(req, res){
-  console.log(req.body);
   Patient.countDocuments({}, function(err, cnt){
     if(err)
       res.send(err);
@@ -110,24 +194,7 @@ app.post("/newpatientapi", function(req, res){
   });
 });
 
-
-app.get("/newcase", function(req, res){
-  res.render("newcase");
-});
-
-app.post("/newcase", function(req, res){
-  console.log(req.body);
-  const newCase = new Case({
-    pid: req.body.pid,
-    doctorId: getDocId(),
-    description: req.body.description
-  });
-  newCase.save();
-  res.redirect("/");
-});
-
 app.post("/newcaseapi", function(req, res){
-  console.log(req.body);
   const newCase = new Case({
     pid: req.body.pid,
     doctorId: getDocId(),
@@ -141,15 +208,36 @@ app.post("/newcaseapi", function(req, res){
   });
 });
 
+
+//////////////////////////////////////////////// Other Utilities ///////////////////////////////////////////////////////
+
+
+function getDocId(){
+  return 0;
+}
+
+function getdate(){
+
+}
+
 app.listen(3000, function(){
   console.log("Server started on port 3000");
 });
 
 
-function getpid(){
-  return 0;
-}
 
-function getDocId(){
-  return 0;
-}
+// TODO:
+// 3. Add new collection doctor
+// 4. Configure to assign the right doctor to each case
+// 5. Configure the doctor's info API
+// 6. Frontend
+// 7. See if you can replace pid with _id
+// 8. Date fields. Case logged date.
+// 9. What about case closing ?
+// 10. Check if adding new patient (and its api) works fine when 0 patients exist
+
+// Fixed:
+// 1. All fields are required in forms.
+// 2. Validation checks added
+// 3. While adding case, that pid should exist
+// 4. Age restricted to 0-150
