@@ -1,5 +1,6 @@
 
 
+
 //////////////////////////////////////////////////////// Init ////////////////////////////////////////////////////////////////
 
 const express = require("express");
@@ -15,6 +16,14 @@ app.use(express.static("public"));
 
 ///////////////////////////////////////////// Defining Schemas and Models ////////////////////////////////////////////////////
 
+
+const doctorSchema = new mongoose.Schema({
+  dId:{type:Number, required:true},
+  name:{type: String, required:true},
+  email: {type:String, required:true},
+  casecount: {type: Number, default:0}
+});
+
 const patientSchema = new mongoose.Schema({
   pid: {type:Number, required: [true, 'pid is required']},
   name: {type:String, required: [true, 'name is required']},
@@ -29,9 +38,9 @@ const caseSchema = new mongoose.Schema({
   description: String
 });
 
+const Doctor = mongoose.model("doctor",doctorSchema);
 const Patient = mongoose.model("patient", patientSchema);
 const Case = mongoose.model("case", caseSchema);
-
 
 
 ////////////////////////////////////////////////// GET requests ///////////////////////////////////////////////////////////
@@ -103,26 +112,38 @@ app.post("/newcase", function(req, res){
       console.log(err);
     }
     else if(patient){
-      const newCase = new Case({
-        pid: req.body.pid,
-        doctorId: getDocId(),
-        description: req.body.description
-      });
-      newCase.save(function(err){
-        if(err){
-          res.send(err);
-          const name = err.name;
-          if(name == "ValidatorError"){
-            alert("pid is required. If you do not have one, please add a new patient.");
-            res.redirect("/");
-          }
-          else{
-            console.log(err);
-          }
-        }
+      Doctor
+      .findOne({})
+      .sort('casecount')
+      .exec(function (err, doc) {
+        if(err)
+          console.log(err);
         else{
-          alert("Case logged Successfully");
-          res.redirect("/");
+          const newCase = new Case({
+            pid: req.body.pid,
+            doctorId: doc.dId,
+            description: req.body.description
+          });
+          newCase.save(function(err){
+            if(err){
+              res.send(err);
+              const name = err.name;
+              if(name == "ValidatorError"){
+                alert("pid is required. If you do not have one, please add a new patient.");
+                res.redirect("/");
+              }
+              else{
+                console.log(err);
+              }
+            }
+            else{
+              Doctor.update({_id:doc._id},{$inc:{casecount:1}},function(err){
+                console.log(err);
+              });
+              alert("Case logged Successfully. Please visit " + doc.name +".");
+              res.redirect("/");
+            }
+          });
         }
       });
     }
@@ -131,12 +152,9 @@ app.post("/newcase", function(req, res){
       res.redirect("/");
     }
   });
-
 });
 
-
 ////////////////////////////////////////////////////// GET API ////////////////////////////////////////////////////////
-
 
 app.get("/patientlist", function(req, res){
   Patient.find({}, {_id:0, __v:0} ,function(err, patients){
@@ -144,6 +162,15 @@ app.get("/patientlist", function(req, res){
       res.send(err);
     else
       res.send(patients);
+  });
+});
+
+app.get("/doclist", function(req, res){
+  Doctor.find({}, {_id:0} ,function(err, doclist){
+    if(err)
+      res.send(err);
+    else
+      res.send(doclist);
   });
 });
 
@@ -211,11 +238,6 @@ app.post("/newcaseapi", function(req, res){
 
 //////////////////////////////////////////////// Other Utilities ///////////////////////////////////////////////////////
 
-
-function getDocId(){
-  return 0;
-}
-
 function getdate(){
 
 }
@@ -224,12 +246,7 @@ app.listen(3000, function(){
   console.log("Server started on port 3000");
 });
 
-
-
 // TODO:
-// 3. Add new collection doctor
-// 4. Configure to assign the right doctor to each case
-// 5. Configure the doctor's info API
 // 6. Frontend
 // 7. See if you can replace pid with _id
 // 8. Date fields. Case logged date.
@@ -241,3 +258,6 @@ app.listen(3000, function(){
 // 2. Validation checks added
 // 3. While adding case, that pid should exist
 // 4. Age restricted to 0-150
+// 5. Add new collection doctor
+// 6. Configure to assign the right doctor to each case
+// 7. Configure the doctor's info API
