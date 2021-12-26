@@ -35,6 +35,7 @@ const patientSchema = new mongoose.Schema({
 const caseSchema = new mongoose.Schema({
   pid:         {type:Number, required: [true, 'pid is required']},
   doctorId:    {type:Number, required: [true, "Doctor's id is required"]},
+  admissionDate: {type:String},
   description: String
 });
 
@@ -122,6 +123,7 @@ app.post("/newcase", function(req, res){
           const newCase = new Case({
             pid: req.body.pid,
             doctorId: doc.dId,
+            admissionDate: (new Date().toISOString().slice(0, 10)),
             description: req.body.description
           });
           newCase.save(function(err){
@@ -153,6 +155,7 @@ app.post("/newcase", function(req, res){
     }
   });
 });
+
 
 ////////////////////////////////////////////////////// GET API ////////////////////////////////////////////////////////
 
@@ -247,6 +250,7 @@ app.listen(3000, function(){
 });
 
 // TODO:
+
 // 6. Frontend
 // 7. See if you can replace pid with _id
 // 8. Date fields. Case logged date.
@@ -261,3 +265,4 @@ app.listen(3000, function(){
 // 5. Add new collection doctor
 // 6. Configure to assign the right doctor to each case
 // 7. Configure the doctor's info API
+// 8. Add admission date to case schema
