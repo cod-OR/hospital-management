@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const app = express();
 const alert=require("alert");
 const url = require('url');
+const request = require('request');
 app.set('view engine', 'ejs');
 mongoose.connect("mongodb://localhost:27017/hospitalDB", { useNewUrlParser:true }, function(err){
   if(err)
@@ -95,68 +96,49 @@ app.post("/getpid", function(req, res){
 
 app.post("/newpatient", function(req, res){
   console.log(baseUrl(req));
-  Patient.countDocuments({}, function(err, cnt){
-    const newPatient = new Patient({
-      pid: cnt,
-      name: req.body.name,
-      email: req.body.email,
-      gender: req.body.gender,
-      age: req.body.age
-    });
-    newPatient.save();
-    alert("Your pid is " + newPatient.pid);
-    res.redirect("/");
-  });
+  request.post({
+      url:baseUrl(req) + "/api/newpatient",
+      form: {
+        name: req.body.name,
+        email: req.body.email,
+        gender: req.body.gender,
+        age: req.body.age
+      }},
+      function(err,httpResponse,body){
+        const response= JSON.parse(body);
+        if(response.status == "OK"){
+          alert(response.message + " Your pid is "+response.pid + ".");
+        }
+        else{
+          console.log(response.err.message)
+          alert(response.err.message);
+        }
+        res.redirect("/");
+      }
+  );
 });
 
+
 app.post("/newcase", function(req, res){
-  Patient.findOne({pid:req.body.pid} , function(err,patient){
-    if(err){
-      console.log(err);
-      res.redirect("/");
-    }
-    else if(patient){
-      Doctor
-      .findOne({})
-      .sort('casecount')
-      .exec(function (err, doc) {
-        if(err)
-          console.log(err);
-        else{
-          const newCase = new Case({
-            pid: req.body.pid,
-            doctorId: doc.dId,
-            admissionDate: (new Date().toISOString().slice(0, 10)),
-            description: req.body.description
-          });
-          newCase.save(function(err){
-            if(err){
-              res.send(err);
-              const name = err.name;
-              if(name == "ValidatorError"){
-                alert("pid is required. If you do not have one, please add a new patient.");
-                res.redirect("/");
-              }
-              else{
-                console.log(err);
-              }
-            }
-            else{
-              Doctor.update({_id:doc._id},{$inc:{casecount:1}},function(err){
-                console.log(err);
-              });
-              alert("Case logged Successfully. Please visit " + doc.name +".");
-              res.redirect("/");
-            }
-          });
+  console.log(baseUrl(req));
+  request.post({
+      url:baseUrl(req) + "/api/newcase",
+      form: {
+        pid: req.body.pid,
+        description: req.body.description
+      }},
+      function(err,httpResponse,body){
+        const response= JSON.parse(body);
+        if(response.status == "OK"){
+          alert(response.message);
         }
-      });
-    }
-    else{
-      alert("No patient with this pid exists.")
-      res.redirect("/");
-    }
-  });
+        else{
+          console.log(response.err.message)
+          alert(response.err.message);
+        }
+        res.redirect("/");
+      }
+  );
 });
 
 ////////////////////////////////////////////////////// GET APIs ////////////////////////////////////////////////////////
@@ -206,6 +188,7 @@ app.get("/api/casecount", function(req, res){
 
 
 app.post("/api/newpatient", function(req, res){
+
   Patient.countDocuments({}, function(err, cnt){
     if(err)
       res.send({status:"ERROR",err});
@@ -218,10 +201,15 @@ app.post("/api/newpatient", function(req, res){
         age: req.body.age
       });
       newPatient.save(function(err){
-        if(err)
+        if(err){
+          console.log(err);
+          err.message = "Some error occured, please fill the form accurately."
           res.send({status:"ERROR",err});
-        else
+        }
+        else{
+          console.log("Patient registered successfully.");
           res.send({status:"OK", message:"Patient registered successfully.", pid:newPatient.pid});
+        }
       });
     }
   });
@@ -297,8 +285,6 @@ app.listen(PORT, function(){
 // 7. See if you can replace pid with _id
 // 9. What about case closing ?
 // 10. Check if adding new patient (and its api) works fine when 0 patients exist
-// 11. Console log error, in case db couldn;t connect in the first step
-// 12. Use timestamp:true option
 // 13. Check error handling
 // 14. newcase api docId bug
 
@@ -312,3 +298,4 @@ app.listen(PORT, function(){
 // 7. Configure the doctor's info API
 // 8. Add admission date to case schema
 // 9. Date fields. Case logged date.
+// 10. Timestamp done.
