@@ -1,7 +1,7 @@
 
 
 //////////////////////////////////////////////////////// Init ////////////////////////////////////////////////////////////////
-
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -10,7 +10,7 @@ const alert=require("alert");
 const url = require('url');
 const request = require('request');
 app.set('view engine', 'ejs');
-mongoose.connect("mongodb://localhost:27017/hospitalDB", { useNewUrlParser:true }, function(err){
+mongoose.connect("mongodb+srv://onkar:"+process.env.PASSWORD+"@cluster0.fnet9.mongodb.net/myDatabase", { useNewUrlParser:true }, function(err){
   if(err)
     console.log("Cannot connect to DB", err);
   else
