@@ -132,14 +132,14 @@ app.post("/newcase", function(req, res){
       function(err,httpResponse,body){
         const response= JSON.parse(body);
         var msg;
-        if(response.status == "OK"){
+        if(response.status === "OK"){
           msg = response.message;
         }
         else{
           console.log(response.err.message)
           msg = response.err.message;
         }
-        res.redirect("/", {msg:msg});
+        res.render("newcase", {msg:msg});
       }
   );
 });
