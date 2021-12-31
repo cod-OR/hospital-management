@@ -5,10 +5,11 @@ require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const app = express();
+
 const alert=require("alert");
 const url = require('url');
 const request = require('request');
+const app = express();
 app.set('view engine', 'ejs');
 mongoose.connect("mongodb+srv://onkar:"+process.env.PASSWORD+"@cluster0.fnet9.mongodb.net/myDatabase", { useNewUrlParser:true }, function(err){
   if(err)
@@ -81,15 +82,16 @@ app.post("/getpid", function(req, res){
   Patient.findOne({email:mail}, function(err, patient){
     if(err){
       console.log(err);
-      alert("Some error occured. Please try again.");
+      const msg= "Some error occured. Please try again.";
+      res.render("getpid", {msg:msg});
     }
     else if(patient){
-      alert("Your pid is " + patient.pid);
-      res.redirect("/");
+      const msg = "Required pid is " + patient.pid;
+      res.render("getpid", {msg:msg});
     }
     else{
-      alert("No patient with this email exists in the database");
-      res.redirect("/");
+      const msg= "No patient with this email exists in the database";
+      res.render("getpid", {msg:msg});
     }
   });
 });
@@ -106,14 +108,15 @@ app.post("/newpatient", function(req, res){
       }},
       function(err,httpResponse,body){
         const response= JSON.parse(body);
+        var msg;
         if(response.status == "OK"){
-          alert(response.message + " Your pid is "+response.pid + ".");
+          msg =response.message + " Your pid is "+response.pid + ".";
         }
         else{
-          console.log(response.err.message)
-          alert(response.err.message);
+          console.log(response.err.message);
+          msg = response.err.message;
         }
-        res.redirect("/");
+        res.render("newpatient", {msg:msg});
       }
   );
 });
@@ -129,14 +132,15 @@ app.post("/newcase", function(req, res){
       }},
       function(err,httpResponse,body){
         const response= JSON.parse(body);
+        var msg;
         if(response.status == "OK"){
-          alert(response.message);
+          msg = response.message;
         }
         else{
           console.log(response.err.message)
-          alert(response.err.message);
+          msg = response.err.message;
         }
-        res.redirect("/");
+        res.redirect("/", {msg:msg});
       }
   );
 });
@@ -299,3 +303,4 @@ app.listen(PORT, function(){
 // 8. Add admission date to case schema
 // 9. Date fields. Case logged date.
 // 10. Timestamp done.
+// 11. msg alert
