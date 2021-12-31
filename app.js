@@ -186,9 +186,7 @@ app.get("/api/casecount", function(req, res){
   });
 });
 
-
 //////////////////////////////////////////////// POST APIs ///////////////////////////////////////////////////////
-
 
 app.post("/api/newpatient", function(req, res){
 
@@ -290,6 +288,7 @@ app.listen(PORT, function(){
 // 10. Check if adding new patient (and its api) works fine when 0 patients exist
 // 13. Check error handling
 // 14. newcase api docId bug
+// 15. Documentation.
 
 // Fixed:
 // 1. All fields are required in forms.
