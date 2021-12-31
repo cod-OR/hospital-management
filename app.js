@@ -123,7 +123,6 @@ app.post("/newpatient", function(req, res){
 
 
 app.post("/newcase", function(req, res){
-  console.log(baseUrl(req));
   request.post({
       url:baseUrl(req) + "/api/newcase",
       form: {
