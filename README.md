@@ -22,11 +22,11 @@ If its value is "ERROR", it means failure. In that case an error object will be 
 
 Following endpoints are available:
 
-1. GET: "/api/patientlist"        To get a list of all patients
-2. GET: "/api/doclist"            To get a list of doctors and total number cases of each doctor
-3. GET: "/api/patienthistory"     To fetch patient history by patient id (Required input - pid).
-4. GET: "/api/casecount"          To fetch total number of cases for a patient (Required input - pid).
-5. POST: "/api/newpatient"        To register a new patient. (Required input: name, email, age, gender).
-6. Post: "/api/newcase"           To register a new case for existing patient. (Required input - pid, description).
+1. GET: "/api/patientlist"     -   To get a list of all patients
+2. GET: "/api/doclist"         -   To get a list of doctors and total number cases of each doctor
+3. GET: "/api/patienthistory"  -   To fetch patient history by patient id (Required input - pid).
+4. GET: "/api/casecount"       -   To fetch total number of cases for a patient (Required input - pid).
+5. POST: "/api/newpatient"     -   To register a new patient. (Required input: name, email, age, gender).
+6. POST: "/api/newcase"        -   To register a new case for existing patient. (Required input - pid, description).
 
 Live site: [Link](https://damp-basin-13149.herokuapp.com/)
