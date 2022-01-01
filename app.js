@@ -1,17 +1,17 @@
 
 
-//////////////////////////////////////////////////////// Init ////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////// init ////////////////////////////////////////////////////////////////
+
 require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-
-const alert=require("alert");
+// const alert=require("alert");
 const url = require('url');
 const request = require('request');
 const app = express();
 app.set('view engine', 'ejs');
-mongoose.connect("mongodb+srv://onkar:"+process.env.PASSWORD+"@cluster0.fnet9.mongodb.net/myDatabase", { useNewUrlParser:true }, function(err){
+mongoose.connect("mongodb+srv://onkar:"+process.env.PASSWORD+"@cluster0.fnet9.mongodb.net/hospitalDb", { useNewUrlParser:true }, function(err){
   if(err)
     console.log("Cannot connect to DB", err);
   else
@@ -23,16 +23,16 @@ app.use(express.static("public"));
 ///////////////////////////////////////////// Defining Schemas and Models ////////////////////////////////////////////////////
 
 const doctorSchema = new mongoose.Schema({
-  dId:{type:Number, required:true},
+  dId:{type:Number, required:true, unique:true},
   name:{type: String, required:true},
   email: {type:String, required:true},
   casecount: {type: Number, default:0}
 });
 
 const patientSchema = new mongoose.Schema({
-  pid: {type:Number, required: [true, 'pid is required']},
+  pid: {type:Number, required: [true, 'pid is required'], unique: true},
   name: {type:String, required: [true, 'name is required']},
-  email: {type:String, required: [true, 'email is required']},
+  email: {type:String, required: [true, 'email is required'], unique: true},
   gender: {type:String, required: [true, 'gender is required (male/female/other).'], enum: ['male', 'female', 'other']},
   age: {type:Number, required: [true, 'age is required'], min:0, max:150}
 }, {timestamps: true});
@@ -48,7 +48,7 @@ const Patient = mongoose.model("patient", patientSchema);
 const Case = mongoose.model("case", caseSchema);
 
 
-////////////////////////////////////////////////// Routes - GET ///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////  Routes  ///////////////////////////////////////////////////////////
 
 
 app.get("/", function(req, res){
@@ -74,27 +74,24 @@ app.get("/getpid", function(req, res){
 });
 
 
-///////////////////////////////////////////////// Routes - POST /////////////////////////////////////////////////////////////
-
-
 app.post("/getpid", function(req, res){
   const mail = req.body.email;
   Patient.findOne({email:mail}, function(err, patient){
+    var msg;
     if(err){
       console.log(err);
-      const msg= "Some error occured. Please try again.";
-      res.render("getpid", {msg:msg});
+      msg= "Some error occured. Please try again.";
     }
     else if(patient){
-      const msg = "Required pid is " + patient.pid;
-      res.render("getpid", {msg:msg});
+      msg = "Required pid is " + patient.pid;
     }
     else{
-      const msg= "No patient with this email exists in the database";
-      res.render("getpid", {msg:msg});
+      msg= "No patient with this email exists in the database";
     }
+    res.render("getpid", {msg:msg});
   });
 });
+
 
 app.post("/newpatient", function(req, res){
   console.log(baseUrl(req));
@@ -144,6 +141,7 @@ app.post("/newcase", function(req, res){
   );
 });
 
+
 ////////////////////////////////////////////////////// GET APIs ////////////////////////////////////////////////////////
 
 
@@ -166,24 +164,37 @@ app.get("/api/doclist", function(req, res){
 });
 
 app.get("/api/patienthistory", function(req, res){
-  Case.find({pid:req.body.pid},{_id:0, __v:0} ,function(err, cases){
-    if(err)
-      res.send({status:"ERROR",err});
-    else
-      res.send({status:"OK",cases});
-  });
+  Patient.findOne({pid:req.body.pid}, function(err, patient){
+    if(!patient)
+      res.send({status:"ERROR",err:{message:"No patient with this pid exists"}});
+    else{
+      Case.find({pid:req.body.pid},{_id:0, __v:0} ,function(err, cases){
+        if(err)
+          res.send({status:"ERROR",err});
+        else
+          res.send({status:"OK",cases});
+      });
+    }
+  })
 });
 
 app.get("/api/casecount", function(req, res){
   const requiredPid = req.body.pid;
-  Case.find({pid:requiredPid}, function(err, cases){
-    if(err)
-      res.send({status:"ERROR",err});
+  Patient.findOne({pid:requiredPid}, function(err, patient){
+    if(!patient)
+      res.send({status:"ERROR",err:{message:"No patient with this pid exists"}});
     else{
-      const size=cases.length;
-      res.send({status:"OK","Total number of cases for this patient":size});
+      Case.find({pid:requiredPid}, function(err, cases){
+        if(err)
+          res.send({status:"ERROR",err});
+        else{
+          const size=cases.length;
+          res.send({status:"OK","totalcases":size});
+        }
+      });
     }
-  });
+  })
+
 });
 
 //////////////////////////////////////////////// POST APIs ///////////////////////////////////////////////////////
@@ -194,24 +205,34 @@ app.post("/api/newpatient", function(req, res){
     if(err)
       res.send({status:"ERROR",err});
     else{
-      const newPatient = new Patient({
-        pid: cnt,
-        name: req.body.name,
-        email: req.body.email,
-        gender: req.body.gender,
-        age: req.body.age
-      });
-      newPatient.save(function(err){
-        if(err){
-          console.log(err);
-          err.message = "Some error occured, please fill the form accurately."
+      Patient.findOne({email:req.body.email},function(err,duplicate){
+        if(duplicate)
+        {
+          const err = {message : "This email id already exists in the database."};
           res.send({status:"ERROR",err});
         }
         else{
-          console.log("Patient registered successfully.");
-          res.send({status:"OK", message:"Patient registered successfully.", pid:newPatient.pid});
+          const newPatient = new Patient({
+            pid: cnt,
+            name: req.body.name,
+            email: req.body.email,
+            gender: req.body.gender,
+            age: req.body.age
+          });
+          newPatient.save(function(err){
+            if(err){
+              console.log(err);
+              err.message = "Some error occured, please fill the form accurately.";
+              res.send({status:"ERROR",err});
+            }
+            else{
+              console.log("Patient registered successfully.");
+              res.send({status:"OK", message:"Patient registered successfully.", pid:newPatient.pid});
+            }
+          });
         }
       });
+
     }
   });
 });
@@ -267,6 +288,7 @@ app.post("/api/newcase", function(req, res){
 
 //////////////////////////////////////////////// Other ///////////////////////////////////////////////////////
 
+
 function baseUrl(req) {
   return url.format({
     protocol: req.protocol,
@@ -278,27 +300,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, function(){
   console.log("Server started on port "+ PORT);
 });
-
-
-
-// TODO:
-// 6. Frontend
-// 7. See if you can replace pid with _id
-// 9. What about case closing ?
-// 10. Check if adding new patient (and its api) works fine when 0 patients exist
-// 13. Check error handling
-// 14. newcase api docId bug
-// 15. Documentation.
-
-// Fixed:
-// 1. All fields are required in forms.
-// 2. Validation checks added
-// 3. While adding case, that pid should exist
-// 4. Age restricted to 0-150
-// 5. Add new collection doctor
-// 6. Configure to assign the right doctor to each case
-// 7. Configure the doctor's info API
-// 8. Add admission date to case schema
-// 9. Date fields. Case logged date.
-// 10. Timestamp done.
-// 11. msg alert
