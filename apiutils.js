@@ -15,9 +15,11 @@ exports.sendList = function sendList(req, res, model){
 
 exports.sendPatienHistory = function sendPatienHistory(req, res, Patient, Case){
   if(req.body.pid==null){
-      res.send({status:"ERROR",err:{message:"Please enter pid"}});
+    // If pid is not provided
+    res.send({status:"ERROR",err:{message:"Please enter pid"}});
   }
   else{
+    // Check if pid exists, if yes, add the case
     Patient.findOne({pid:req.body.pid}, function(err, patient){
       if(!patient)
         res.send({status:"ERROR",err:{message:"No patient with this pid exists"}});
@@ -36,23 +38,25 @@ exports.sendPatienHistory = function sendPatienHistory(req, res, Patient, Case){
 exports.sendCaseCount = function sendCaseCount(req, res, Patient){
   const requiredPid = req.body.pid;
   if(req.body.pid==null){
+      // If pid is not provided
       res.send({status:"ERROR",err:{message:"Please enter pid"}});
   }
   else{
-  Patient.findOne({pid:requiredPid}, function(err, patient){
-    if(!patient)
-      res.send({status:"ERROR",err:{message:"No patient with this pid exists"}});
-    else{
-      Case.find({pid:requiredPid}, function(err, cases){
-        if(err)
-          res.send({status:"ERROR",err});
-        else{
-          const size=cases.length;
-          res.send({status:"OK","totalcases":size});
-        }
-      });
-    }
-  })
+    // Check if pid exists, if yes, add the case
+    Patient.findOne({pid:requiredPid}, function(err, patient){
+      if(!patient)
+        res.send({status:"ERROR",err:{message:"No patient with this pid exists"}});
+      else{
+        Case.find({pid:requiredPid}, function(err, cases){
+          if(err)
+            res.send({status:"ERROR",err});
+          else{
+            const size=cases.length;
+            res.send({status:"OK","totalcases":size});
+          }
+        });
+      }
+    })
   }
 }
 
@@ -60,18 +64,19 @@ exports.sendCaseCount = function sendCaseCount(req, res, Patient){
 exports.newPatient = function newPatient(req,res,Patient){
 
   Patient.countDocuments({}, function(err, cnt){
+    // cnt contains the number of patients, new patient will get the next id
     if(err)
       res.send({status:"ERROR",err});
     else{
       Patient.findOne({email:req.body.email},function(err,duplicate){
-        if(duplicate)
-        {
+        if(duplicate){
+          // if this email already exists, inform that
           const err = {message : "This email id already exists in the database."};
           res.send({status:"ERROR",err});
         }
         else{
           const newPatient = new Patient({
-            pid: cnt,
+            pid: cnt+10000,
             name: req.body.name,
             email: req.body.email,
             gender: req.body.gender,
@@ -92,16 +97,17 @@ exports.newPatient = function newPatient(req,res,Patient){
       });
     }
   });
-
 }
 
 
 exports.newCase = function newCase(req, res, Patient, Doctor, Case){
   Patient.findOne({pid:req.body.pid} , function(err,patient){
+    // move forward only if the pid exists
     if(err){
       res.send({status:"ERROR",err});
     }
     else if(patient){
+      // Sort the doctors accor to their casecount and take the first one
       Doctor
       .findOne({})
       .sort('casecount')
@@ -127,6 +133,7 @@ exports.newCase = function newCase(req, res, Patient, Doctor, Case){
               }
             }
             else{
+              // increment the casecount of this doctor
               Doctor.updateOne({_id:doc._id},{$inc:{casecount:1}},function(err){
                 if(err)
                   console.log({status:"ERROR",err});

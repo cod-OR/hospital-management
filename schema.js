@@ -2,6 +2,9 @@
 
 const mongoose = require("mongoose");
 
+
+// Doctor, patient and case
+
 exports.doctorSchema = new mongoose.Schema({
   dId:{type:Number, required:true, unique:true},
   name:{type: String, required:true},

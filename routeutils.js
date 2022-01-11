@@ -12,9 +12,11 @@ exports.getpid = function getpid(req, res, Patient){
       msg= "Some error occured. Please try again.";
     }
     else if(patient){
+      // if the pid exists, it will be sent through the response
       msg = "Required pid is " + patient.pid;
     }
     else{
+      // patient doesn't exist
       msg= "No patient with this email exists in the database";
     }
     res.render("getpid", {msg:msg});
@@ -24,6 +26,8 @@ exports.getpid = function getpid(req, res, Patient){
 
 exports.newPatient = function (req, res){
   console.log(baseUrl(req));
+
+  // using the api endpoint
   request.post({
       url:baseUrl(req) + "/api/newpatient",
       form: {
@@ -36,6 +40,7 @@ exports.newPatient = function (req, res){
         const response= JSON.parse(body);
         var msg;
         if(response.status == "OK"){
+          // If the patient is registered successfully, its pid will be displayed in a message;
           msg =response.message + " Your pid is "+response.pid + ".";
         }
         else{
@@ -48,6 +53,8 @@ exports.newPatient = function (req, res){
 }
 
 exports.newCase = function(req, res){
+
+  // using of the api endpoint
   request.post({
       url:baseUrl(req) + "/api/newcase",
       form: {
@@ -64,13 +71,14 @@ exports.newCase = function(req, res){
           console.log(response.err.message)
           msg = response.err.message;
         }
+
         res.render("newcase", {msg:msg});
       }
   );
 }
 
 
-
+// utility function to generate the base url for api call
 function baseUrl(req) {
   return url.format({
     protocol: req.protocol,
