@@ -14,7 +14,7 @@ Registering a new patient allots an id to the patient (pid).
 After adding a new case, a doctor will be assigned to that case.
 Doctors will be assigned in such a way that there is a uniform distribution of cases among them.
 
-Database schema - [Link](#)
+Database schema - [Link](https://github.com/cod-OR/hospital-management/blob/main/schema.js)
 
 #APIs
 
