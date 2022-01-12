@@ -8,7 +8,7 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const app = express();
 app.set('view engine', 'ejs');
-mongoose.connect("mongodb+srv://onkar:"+process.env.PASSWORD+"@cluster0.fnet9.mongodb.net/myDatabase", { useNewUrlParser:true }, function(err){
+mongoose.connect("mongodb+srv://onkar:"+process.env.PASSWORD+"@cluster0.fnet9.mongodb.net/hospitalDb", { useNewUrlParser:true }, function(err){
   if(err)
     console.log("Cannot connect to DB", err);
   else
