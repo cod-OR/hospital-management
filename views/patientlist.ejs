@@ -1,0 +1,39 @@
+
+<%- include('partials/header'); -%>
+
+<body>
+  <div class="text-center box">
+    <table class="table table-sm">
+      <thead>
+        <td>
+          PID
+        </td>
+        <td>
+          Name
+        </td>
+        <td>
+          Gender
+        </td>
+        <td>
+          Age
+        </td>
+      </thead>
+
+      <tbody>
+          <%   for(num in list) { %>
+            <tr>
+                <td><%= list[num].pid %> </td>
+                <td><%= list[num].name %> </td>
+                <td><%= list[num].gender %> </td>
+                <td><%= list[num].age %> </td>
+            </tr>
+          <% } %>
+      </tbody>
+
+    </table>
+  </div>
+
+</body>
+
+
+<%- include('partials/footer'); -%>

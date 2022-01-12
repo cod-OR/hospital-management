@@ -77,13 +77,12 @@ exports.newCase = function(req, res){
 
 }
 
-exports.sendlist = function(req,res,model){
+exports.sendlist = function(req,res,model,template){
   model.find({}, {_id:0, __v:0} ,function(err, list){
     if(err){
       console.log(err);
     }
     else{
-      const template = "doctorlist";
       res.render(template , {list:list});
     }
   });
