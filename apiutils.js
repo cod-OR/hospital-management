@@ -12,7 +12,6 @@ exports.sendList = function sendList(req, res, model){
 }
 
 
-
 exports.sendPatienHistory = function sendPatienHistory(req, res, Patient, Case){
   if(req.body.pid==null){
     // If pid is not provided
@@ -24,7 +23,7 @@ exports.sendPatienHistory = function sendPatienHistory(req, res, Patient, Case){
       if(!patient)
         res.send({status:"ERROR",err:{message:"No patient with this pid exists"}});
       else{
-        Case.find({pid:req.body.pid},{_id:0, __v:0} ,function(err, cases){
+        Case.find({pid:req.body.pid},{_id:0, __v:0, description:0} ,function(err, cases){
           if(err)
             res.send({status:"ERROR",err});
           else
@@ -34,6 +33,7 @@ exports.sendPatienHistory = function sendPatienHistory(req, res, Patient, Case){
     })
   }
 }
+
 
 exports.sendCaseCount = function sendCaseCount(req, res, Patient){
   const requiredPid = req.body.pid;
