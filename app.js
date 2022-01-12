@@ -55,6 +55,10 @@ app.get("/getpid", function(req, res){
   res.render("getpid");
 });
 
+app.get("/doctorlist", function(req, res){
+  routeutils.sendlist(req,res,Doctor);
+});
+
 // user enters his email id to get back his patient-id
 app.post("/getpid", function(req, res){
   routeutils.getpid(req,res,Patient);

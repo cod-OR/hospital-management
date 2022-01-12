@@ -1,0 +1,35 @@
+
+<%- include('partials/header'); -%>
+
+<body>
+  <div class="text-center box">
+    <table class="table table-sm">
+      <thead>
+        <td>
+          ID
+        </td>
+        <td>
+          Name
+        </td>
+        <td>
+          Current cases
+        </td>
+      </thead>
+
+      <tbody>
+          <%   for(doc in list) { %>
+            <tr>
+                <td><%= list[doc].dId %> </td>
+                <td><%= list[doc].name %> </td>
+                <td><%= list[doc].casecount %> </td>
+            </tr>
+          <% } %>
+      </tbody>
+
+    </table>
+  </div>
+
+</body>
+
+
+<%- include('partials/footer'); -%>

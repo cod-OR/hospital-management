@@ -71,12 +71,23 @@ exports.newCase = function(req, res){
           console.log(response.err.message)
           msg = response.err.message;
         }
-
         res.render("newcase", {msg:msg});
       }
   );
+
 }
 
+exports.sendlist = function(req,res,model){
+  model.find({}, {_id:0, __v:0} ,function(err, list){
+    if(err){
+      console.log(err);
+    }
+    else{
+      const template = "doctorlist";
+      res.render(template , {list:list});
+    }
+  });
+}
 
 // utility function to generate the base url for api call
 function baseUrl(req) {

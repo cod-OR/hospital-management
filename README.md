@@ -14,6 +14,8 @@ Registering a new patient allots an id to the patient (pid).
 After adding a new case, a doctor will be assigned to that case.
 Doctors will be assigned in such a way that there is a uniform distribution of cases among them.
 
+Database schema - [Link](#)
+
 #APIs
 
 Every response will have a "status" field.
